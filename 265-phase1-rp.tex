@@ -1,0 +1,399 @@
+% Exact LaTeX recreation of the supplied Phase-1.pdf
+% Compile with pdfLaTeX. Place member pictures in the same folder if required.
+
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[a4paper,left=2.0cm,right=2.0cm,top=1.55cm,bottom=1.55cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usepackage{setspace}
+
+% -------------------------------------------------
+% COLOURS
+% -------------------------------------------------
+\definecolor{TitleBlue}{RGB}{61,103,154}
+
+% -------------------------------------------------
+% GENERAL SETTINGS
+% -------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\renewcommand{\arraystretch}{1.0}
+
+% The supplied document uses a clean sans-serif heading style
+% and italic serif-style explanatory text.
+\newcommand{\blueheading}[1]{%
+    {\sffamily\color{TitleBlue}\fontsize{15}{18}\selectfont #1}%
+}
+
+\newcommand{\bluebigheading}[1]{%
+    {\sffamily\bfseries\color{TitleBlue}\fontsize{16}{19}\selectfont #1}%
+}
+
+\newcommand{\instruction}[1]{%
+    {\itshape\fontsize{10.5}{12.5}\selectfont #1}%
+}
+
+\newcommand{\answerbox}[2][3.0cm]{%
+    \vspace{2pt}
+    \noindent
+    \fbox{%
+        \begin{minipage}[t][#1][t]{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}
+            \vspace{1mm}
+            \itshape #2
+        \end{minipage}
+    }
+}
+
+% -------------------------------------------------
+% HEADER / FOOTER
+% -------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyhead[L]{%
+    \sffamily\bfseries\itshape\fontsize{10.5}{12}\selectfont
+    DSCPP-III-2026-T265
+}
+\fancyhead[R]{%
+    \sffamily\bfseries\fontsize{10.5}{12}\selectfont
+    PROJECT PROPOSAL
+}
+\fancyfoot[R]{%
+    \itshape\fontsize{10}{12}\selectfont
+    Page \thepage
+}
+\setlength{\headheight}{14pt}
+\setlength{\headsep}{23pt}
+\setlength{\footskip}{24pt}
+
+% -------------------------------------------------
+% PAGE 1
+% -------------------------------------------------
+\begin{document}
+
+\vspace*{4mm}
+
+\bluebigheading{PROJECT AND TEAM INFORMATION}
+
+\vspace{13mm}
+
+\blueheading{Project Title}
+
+\vspace{1mm}
+
+
+
+\answerbox[1.0cm]{Campus X: Beyond the Feed}
+
+\vspace{13mm}
+
+\blueheading{Student / Team Information}
+
+\vspace{2mm}
+
+% Team information table
+% Compact 4-member layout so all members remain on Page 1.
+\noindent
+\begin{tabularx}{\textwidth}{|>{\RaggedRight\arraybackslash}p{0.69\textwidth}|>{\RaggedRight\arraybackslash}X|}
+\hline
+\begin{minipage}[t]{\linewidth}
+\vspace{1.5mm}
+\textit{Team Name:}\\[-1mm]
+\textit{Team \#}
+\vspace{1.5mm}
+\end{minipage}
+&
+\begin{minipage}[t]{\linewidth}
+\vspace{1.5mm}
+\textit{Meta Minds}
+\vspace{1.5mm}
+\end{minipage}
+\\
+\hline
+\begin{minipage}[t][3.25cm][t]{\linewidth}
+\vspace{1.5mm}
+\textbf{Team member 1 (Team Lead)}\\[-1mm]
+
+\vspace{2.0cm}
+\end{minipage}
+&
+\begin{minipage}[t][3.25cm][t]{\linewidth}
+\vspace{1.5mm}
+\textit{Bhatnagar, Aryaman -- 2510380065}\\
+\textit{aryaman6649@gmail.com}
+
+\vspace{2mm}
+\includegraphics[width=3.0cm,height=1.5cm,keepaspectratio]{aryaman.png}
+\end{minipage}
+\\
+\hline
+\begin{minipage}[t][3.7cm][t]{\linewidth}
+\vspace{1.5mm}
+\textbf{Team member 2}\\[-1mm]
+
+\vspace{2.0cm}
+\end{minipage}
+&
+\begin{minipage}[t][3.7cm][t]{\linewidth}
+\vspace{1.5mm}
+\textit{Batra, Akshat -- 2510360007}\\
+\textit{akshatbatra0616@gmail.com}
+
+\vspace{2mm}
+\includegraphics[width=3.2cm,height=1.6cm,keepaspectratio]{akshat.jpg}
+\end{minipage}
+\\
+\hline
+\begin{minipage}[t][3.25cm][t]{\linewidth}
+\vspace{1.5mm}
+\textbf{Team member 3}\\[-1mm]
+
+\vspace{2.0cm}
+\end{minipage}
+&
+\begin{minipage}[t][3.7cm][t]{\linewidth}
+\vspace{1.5mm}
+\textit{Bhadana, Vedant -- 2510370565}\\
+\textit{bhadanavedant29
+@gmail.com}
+
+\vspace{2mm}
+\includegraphics[width=3.0cm,height=1.5cm,keepaspectratio]{vedant.jpeg}
+\end{minipage}
+\\
+\hline
+\begin{minipage}[t][3.7cm][t]{\linewidth}
+\vspace{1.5mm}
+\textbf{Team member 4}\\[-1mm]
+
+\vspace{2.0cm}
+\end{minipage}
+&
+\begin{minipage}[t][3.7cm][t]{\linewidth}
+\vspace{1.5mm}
+\textit{Rastogi, Ritwik -- 2510374220}\\
+\textit{ritwik.com2@gmail.com}
+
+\vspace{2mm}
+ \includegraphics[width=3.0cm,height=1.5cm,keepaspectratio]{ritwik.jpeg}
+\end{minipage}
+\\
+\hline
+\end{tabularx}
+
+\newpage
+
+% -------------------------------------------------
+% PAGE 2
+% -------------------------------------------------
+
+\bluebigheading{PROPOSAL DESCRIPTION}
+
+\vspace{12mm}
+
+\blueheading{Motivation}
+
+\vspace{1mm}
+
+
+
+\answerbox[5cm]{We wish to build Campus X because we believe that college life can be more organized and connected with a single platform Our main goal is to create something that students can use every day Campus X will bring together activities like announcements, events, clubs, academic resources, student connections, Lost and Found emergency updates all in one place We want students to find what they need easily without having to check groups or sources We want this project to be practical and meaningful for our learning Since we are studying Data Structures and OOP in C++ it gives us a chance to apply what we learn We can use these concepts to build a working system that solves problems This helps us understa how the theory we learn can be used to create something}
+
+\vspace{12mm}
+
+\blueheading{State of the Art / Current solution}
+
+\vspace{1mm}
+
+
+
+\answerbox[6cm]{Currently college-related information is mreceived by platforms instead of a unified system. WhatsApp groups are often used for announcements, discussions, notes and event updates.Instagram pages are
+used by clubs and societies to promote events and activities. Official information is usually shared
+through the college website, notice boards or separate communication channels. Students therefore
+have to check multiple sources depending on what information they need.
+\vspace{2mm}
+
+Although these methods are helpful, they can make campus information tedious to access. Important
+updates can get lost in group conversations. Some student-focused platforms offer features like communities, events, and student connections. They are not specifically built around the needs of our
+college. Campus X aims to bring all these activities in one organized platform. It will use DSA based
+solutions, for searching, recommendations, ranking, notifications and information management.}
+
+\vspace{12mm}
+\newpage
+
+\blueheading{Project Goals and Milestones}
+
+\vspace{1mm}
+
+
+\answerbox[23cm]{We are building Campus X ,a student focussed platform that organises campus info, connects students, and provides academic and college related resources. It will show the application of DSA and Object Oriented Programminng in C++ for solving real campus problems.The platform will feature the Campus Feed, Communities, Campus Search, People You Should Know, Lost \& Found, Event Hub, Leaderboard, Resource Exchange, Emergency Board, Smart Notifications, Trending, Anonymous Confesions, Campus Activity, and Project Partners Matching.
+The project will also include advanced DSA driven features
+
+\begin{itemize}
+    \item \textbf{Campus Knowledge Graph:} Connects students, skills, subjects, clubs, events, projects, and resources to discover meaningful relationships
+    \item \textbf{Smart Team Formation Engine:} Forms and ranks suitable project teams based on skills, availability, compatibility, and project requirements
+    \item \textbf{Information Conflict Resolver:} Detects duplicate or conflicting announcements and identifies the most reliable version
+    \item \textbf{Information Trust \& Reliability Engine:} Assigns reliability scores to information based on source, verification, recency, and confirmation
+    \item \textbf{Schedule Conflict Detector:} Detects clash between class, events, meetings, and other activity
+    \item \textbf{Smart Event Seat \& Waitlist Alocator:} Prioritizes eligible students and automatically allocates available event seats
+    \item \textbf{Resource Version \& Similarity Manager:} Detects duplicate or similar academic resources manages versions, and ranks useful material
+    \item \textbf{Skill Gap \& YouTube Learning Recomender:} Identifies missing skills and recommends campus resources and the five most relevant YouTube videos
+    \item \textbf{Academic Dependency \& Learning Path:} Identifies prerequisite skills or subjects and suggests an appropriate learning sequence
+\end{itemize}
+
+Hashing, Graphs, Adjacency Lists, BFS, DFS, Tries, Trees/BSTs, Linked Lists, Queues, Stacks, Priority Queues/Heaps, Sort, Binary Search, String Matching, Frequency Counting, Greedy Selection, Interval Checking, Time Decay, Top-K Selection The system will be designed using OOP concepts like classes, inheritance, polymorphism, STL, exception handling and modular design.
+Planned Milestones:
+
+\begin{itemize}
+    \item \textbf{Phase 1 -- Planning \& Design:} Finalise requirements, feature workflows, data models, classes, architecture and DSA mapping.
+    \item \textbf{Phase 2 -- Development:} Implement core Campus X modules, advanced DSA, C++ OOP, database integration and user interface.
+    \item \textbf{Phase 3 -- Integration, Testing \& Optimisation:} Integrate all modules, test functionality and edge cases, evaluate algorithm efficiency, optimise performance, and prepare for final demonstration.
+\end{itemize}
+}
+\end{itemize}}
+
+\vspace{12mm}
+\newpage
+
+\blueheading{Project Approach}
+
+\vspace{1mm}
+
+
+
+
+
+\answerbox[18cm]{\begin{enumerate}
+    \item Requirement Analysis and Planning -- Identify user requirements, features, workflows, and system requirements
+
+    \item System Architecture and Module Design -- dividing the app into modules and defining frontend, C++ DSA engine, database and API interaction
+
+    \item DSA Design and Selection -- Choose the relevant data structures and algorithms for each problem like hashing, graphs, tree, tries, qeues, stacks, heaps, sorting, searching and string matching
+
+    \item 00P Based Development -- Apply C++ classes, inheritance, polymorphism, STL, exception handling and modular design
+
+    \item Campus Knowledge Graph -- connect students, skills, subjects, clubs, events, projects and resources using graphs, adjacency lists, BFS and DFS
+
+\item Info conflict and reliability — detect duplicate or conflicting announcements using hashing and string matching and rank versions using source,verifying and recency
+    
+\item Schedule and event managing — class/event Clashes using sorting and interval checking, registration and wait list using queue and priority queue
+
+\item Resource similarity and version managing — hashing, string matching, tree, sorting and heaps to find duplicate/similar resources, manage versions and rank material
+
+\item Skill Gap and Learning Recomendation — match required skills with existing skills, find gaps, get videos from YouTube score for relevance and pick top 5 with priority qeueu
+
+\item Notification and Priority Management — process normal notifs using queues and priority information using Priority queues based on importance and urgency
+\item Search, Rank and Recomendation — Use tries, hashing, binary search sorting and time decay to efficiently search and rank according to relevance, importance, popularity and recency
+
+\item Integrating, performance and optimisating — The module are integrated and time and space efficientcy is calculalted. The modules are tested with larger datasets and algos are optimised The final demonstration is prepared
+\end{enumerate}}
+\end{enumerate}}
+
+\newpage
+
+% -------------------------------------------------
+% PAGE 3
+% -------------------------------------------------
+
+\blueheading{System Architecture}
+
+\vspace{1mm}
+
+
+\answerbox[24.0cm]{
+    \centering
+    \includegraphics[height=24.0cm, keepaspectratio]{flowchart.png}
+}
+
+\vspace{12mm}
+
+\blueheading{Project Outcome / Deliverables }
+
+\vspace{1mm}
+
+\answerbox[17.5cm]{Our primary goal is to develop a functional and student orientted platform made for college communities
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+    \item \textbf{Campus Feed} -- Notices, accomplishments, conversations, openings and activities
+
+    \item \textbf{Smart Search} -- searching for students, clubs, events, resources and campus info using tries, hashing, binary search and sorting
+
+    \item \textbf{Student Connections} -- graphs, BFS and DFS through communities, recommendations and the Campus Knowledge Graph
+
+    \item \textbf{Team Formation} -- Project partners based on skills, availability, compatibility and eligibility
+
+    \item \textbf{Lost and Found} -- Efficient search, similarity matching and duplicate detection
+
+    \item \textbf{Info Conflict Management} -- Identify duplicate or conflicting announcements and determine the most reliable one
+
+    \item \textbf{Schedule Conflict Detection} -- Detect class, event and meeting clashes using Sorting and Interval Checking
+
+    \item \textbf{Event Registration with Waitlist} -- Queues and Priority Queues for managing registrations and waitlists
+
+    \item \textbf{Academic Resource Management} -- Duplicate detection, versioning, similarity checking and ranking of academic material
+
+    \item \textbf{Skill Gap and Learning Reccommendation} -- Identify skill gaps and recommend campus resources and the top 5 most relevant YouTube videos
+
+    \item \textbf{Trending, leaderboard and notification managing} -- Frequency counting, heaps, qeues and priority queues for ranking and prioritization
+
+    \item \textbf{Academic and campus organisation} -- Trees for organizing departments, batches, clubs, subjects and skills
+
+    \item \textbf{Exception Handling} -- handle spam, blocked users, deleted posts, outdated info, duplicate resources, verification issues and changing student details
+\end{itemize}
+
+The final deliverable will show how daata structures, algos and OOP in C++ can be used practically to develop a digital platform that is efficient and well-structured for college community}
+\vspace{12mm}
+
+\blueheading{Assumptions}
+
+\vspace{3mm}
+
+
+
+\answerbox[5.1cm]{
+1. the platform will be accessible only to authorized members and verified college students
+
+2. Each student will have account and a unique student identifier to manage their profile connection and activity
+
+3. Users are responsible for making sure the info they add is correct when they make posts events resources projects and other campus content
+
+4. The app will use data structures and algos such as tries hash table, graphs, trees, queues, stacks and priority queue to handle and process data efficiently
+
+5. When dealing with blocked users, deleted posts, duplicate information, old content and changes in student info the system will preserve user and content history
+
+6. our app will provide the recommendation, ranking, matching and process logic and external services such as the YouTube API will be used to fetch learning resources
+}
+\vspace{12mm}
+\newpage
+
+\blueheading{References}
+
+\vspace{1mm}
+
+
+
+\answerbox[2.3cm]{
+1. GeeksforGeeks -- for understanding Data Structures and Algorithms concepts
+
+2. W3Schools -- for SQL, JavaScript and web development concepts
+
+3. C++ Documentation -- for C++ programming and STL concepts
+
+4. Node.js \& Express.js Documentation -- for backend development
+
+5. MySQL Documentation -- for SQL query, DBMS
+}
+
+
+\end{document}
