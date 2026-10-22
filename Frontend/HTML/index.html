@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070b14" />
+  <title>Home | CampusX</title>
+  <!-- Apply the saved theme before first paint, so the page never flashes the wrong colours -->
+  <script>try { var t = localStorage.getItem('campusx:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="home">
+  <div class="aurora" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a href="/" class="brand" aria-label="CampusX home"><svg class="icon brand-mark" aria-hidden="true"><use href="/img/icons.svg#logo"/></svg><span class="brand-word">CampusX</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="/" data-page="home"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#home"/></svg><span>Home</span></a>
+      <a href="/search.html" data-page="search"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#search"/></svg><span>Search</span></a>
+      <a href="/feed.html" data-page="feed"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#feed"/></svg><span>Feed</span></a>
+      <a href="/emergency.html" data-page="emergency" class="topnav-emergency"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#alert"/></svg><span>Emergency</span></a>
+    </nav>
+    <div class="topbar-tools">
+      <button id="theme-toggle" type="button" class="icon-btn" aria-label="Switch theme"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#sun"/></svg></button>
+      <div id="user-slot" class="topbar-user"></div>
+    </div>
+  </header>
+  <main id="main" class="page">
+    <section class="hero reveal" style="--i:0">
+      <div class="hero-main panel">
+        <h1 id="greeting" class="hero-title">Welcome to CampusX</h1>
+        <p class="hero-sub">Find any place or person, catch up with campus news, and know the safest way out in an emergency.</p>
+        <form id="home-search" class="search-field" role="search" action="/search.html">
+          <svg class="icon" aria-hidden="true"><use href="/img/icons.svg#search"/></svg>
+          <label for="home-q" class="sr-only">Search places, people and events</label>
+          <input id="home-q" name="q" type="search" placeholder="Try “libary”, “CSE office” or “hackathon”" autocomplete="off" />
+          <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+      </div>
+      <a href="/emergency.html" class="sos-card panel">
+        <span class="sos-icon"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#alert"/></svg></span>
+        <span class="sos-title">Emergency</span>
+        <span class="sos-text">Safest route out, call buttons, works offline</span>
+      </a>
+    </section>
+
+    <section class="stats reveal" style="--i:1" aria-label="Campus at a glance">
+      <div class="stat panel"><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#pin"/></svg></span><span class="stat-num" id="stat-points">–</span><span class="stat-label">Places mapped</span><span class="stat-sub" id="stat-points-sub">indoor and outdoor</span></div>
+      <div class="stat panel" id="stat-hazard-card"><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#shield"/></svg></span><span class="stat-num" id="stat-hazards">–</span><span class="stat-label">Active hazards</span><span class="stat-sub" id="stat-hazards-sub">checking…</span></div>
+      <div class="stat panel"><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#database"/></svg></span><span class="stat-num" id="stat-docs">–</span><span class="stat-label">Searchable entries</span><span class="stat-sub" id="stat-docs-sub">places, people, events</span></div>
+      <div class="stat panel"><span class="stat-icon"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#phone"/></svg></span><span class="stat-num" id="stat-contacts">–</span><span class="stat-label">Emergency contacts</span><span class="stat-sub" id="stat-contacts-sub">one tap to call</span></div>
+    </section>
+
+    <section class="dash-grid reveal" style="--i:2">
+      <div class="panel">
+        <div class="panel-head"><h2><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#feed"/></svg> Latest on the feed</h2><a href="/feed.html" class="btn btn-glass btn-sm">Open feed</a></div>
+        <div id="home-posts" class="home-posts"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h2><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#trending"/></svg> Trending this week</h2></div>
+        <div id="home-trending"></div>
+      </div>
+    </section>
+
+    <section class="panel hood reveal" style="--i:3" aria-labelledby="hood-title">
+      <div class="panel-head"><h2 id="hood-title"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#sparkle"/></svg> Under the hood</h2><span class="muted small">Live numbers from the C++ server</span></div>
+      <div class="hood-grid">
+        <div class="hood-item"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#tree"/></svg><div><p class="hood-num" id="hood-trie">–</p><p class="hood-label">Trie nodes behind search</p></div></div>
+        <div class="hood-item"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#clock"/></svg><div><p class="hood-num" id="hood-speed">–</p><p class="hood-label">Time to answer “library”</p></div></div>
+        <div class="hood-item"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#graph"/></svg><div><p class="hood-num" id="hood-graph">–</p><p class="hood-label">Graph nodes and paths</p></div></div>
+        <div class="hood-item"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#route"/></svg><div><p class="hood-num" id="hood-tables">–</p><p class="hood-label">Exit routing tables (multi-source Dijkstra)</p></div></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/home.js"></script>
+</body>
+</html>
