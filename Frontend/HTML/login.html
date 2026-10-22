@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070b14" />
+  <title>Log in | CampusX</title>
+  <!-- Apply the saved theme before first paint, so the page never flashes the wrong colours -->
+  <script>try { var t = localStorage.getItem('campusx:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="login">
+  <div class="aurora" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a href="/" class="brand" aria-label="CampusX home"><svg class="icon brand-mark" aria-hidden="true"><use href="/img/icons.svg#logo"/></svg><span class="brand-word">CampusX</span></a>
+    <nav class="topnav" aria-label="Main">
+      <a href="/" data-page="home"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#home"/></svg><span>Home</span></a>
+      <a href="/search.html" data-page="search"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#search"/></svg><span>Search</span></a>
+      <a href="/feed.html" data-page="feed"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#feed"/></svg><span>Feed</span></a>
+      <a href="/emergency.html" data-page="emergency" class="topnav-emergency"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#alert"/></svg><span>Emergency</span></a>
+    </nav>
+    <div class="topbar-tools">
+      <button id="theme-toggle" type="button" class="icon-btn" aria-label="Switch theme"><svg class="icon" aria-hidden="true"><use href="/img/icons.svg#sun"/></svg></button>
+      <div id="user-slot" class="topbar-user"></div>
+    </div>
+  </header>
+  <main id="main" class="page page-center">
+    <section class="auth panel reveal">
+      <svg class="icon auth-mark" aria-hidden="true"><use href="/img/icons.svg#logo"/></svg>
+      <h1 id="auth-title">Log in to CampusX</h1>
+      <form id="auth-form" class="stack" novalidate>
+        <label id="name-field" hidden>Full name<input name="name" autocomplete="name" minlength="2" maxlength="80" /></label>
+        <label>College email<input name="email" type="email" autocomplete="email" required /></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+        <p id="auth-error" class="error" role="alert"></p>
+        <button id="auth-submit" type="submit" class="btn btn-primary btn-block">Log in</button>
+      </form>
+      <p class="small auth-switch"><span id="switch-text">New here?</span> <button id="switch-mode" type="button" class="btn-link">Create an account</button></p>
+    </section>
+  </main>
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>
