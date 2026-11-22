@@ -12,16 +12,19 @@
 #include <string>
 #include <unordered_map>
 
-#include "db/Database.h"
-#include "dsa/RateLimiter.h"
-#include "seed/Seed.h"
-#include "services/AuthService.h"
-#include "services/FeedService.h"
-#include "services/NavService.h"
-#include "services/SearchService.h"
-#include "util/HttpError.h"
-#include "util/Json.h"
-#include "util/Text.h"
+#include "backend/database/Database.h"
+#include "backend/dsa/RateLimiter.h"
+#include "backend/seed/Seed.h"
+#include "backend/services/AuthService.h"
+#include "backend/services/GeminiClient.h"
+#include "backend/services/LearningService.h"
+#include "backend/services.ved/FeedService.h"
+#include "backend/Services.rit/NavService.h"
+#include "backend/services.ved/PartnerService.h"
+#include "backend/services/SearchService.h"
+#include "backend/util/HttpError.h"
+#include "backend/util/Json.h"
+#include "backend/util/Text.h"
 
 using namespace cx;
 
@@ -30,7 +33,7 @@ namespace {
 struct Config {
     int port = 8080;
     std::string dbPath = "campusx.db";
-    std::string publicDir = "public";
+    std::string publicDir = "Frontend";
     std::string emailDomain;  // e.g. geu.ac.in to restrict sign-ups
     std::string seedPassword = "ChangeMe@123";
     int pbkdf2Iterations = 120000;
@@ -60,7 +63,7 @@ Config loadConfig(int argc, char** argv) {
         else if (a == "--db") c.dbPath = value();
         else if (a == "--public") c.publicDir = value();
         else if (a == "--help") {
-            std::cout << "Usage: campusx [--seed] [--port 8080] [--db campusx.db] [--public public]\n"
+            std::cout << "Usage: campusx [--seed] [--port 8080] [--db campusx.db] [--public Frontend]\n"
                          "  --seed   wipe the database and load the SAMPLE campus (development only)\n";
             std::exit(0);
         } else {
@@ -160,17 +163,31 @@ int main(int argc, char** argv) {
             std::cout << "Loading SAMPLE campus data (placeholders, not real)...\n";
             seedDatabase(db, auth, cfg.seedPassword);
             std::cout << "Demo logins, password \"" << cfg.seedPassword << "\":\n"
-                      << "  admin@campusx.local  faculty@campusx.local  student@campusx.local\n";
+                      << "  admin@campusx.local  faculty@campusx.local\n"
+                      << "Demo student: " << DEMO_STUDENT_EMAIL << " (own password, see README)\n";
+        } else if (upgradeLegacyDemoStudent(db, auth)) {
+            std::cout << "Moved the old demo student (student@campusx.local) to " << DEMO_STUDENT_EMAIL << ".\n";
+        }
+        if (partnerSampleMissing(db)) {
+            std::cout << "Adding SAMPLE student profiles for project partner matching...\n";
+            seedPartnerSample(db, auth, cfg.seedPassword);
         }
 
         SearchService search(db);
         FeedService feed(db);
         NavService nav(db);
+        PartnerService partners(db);
+        GeminiClient gemini(GeminiClient::loadKey("gemini.key"), GeminiClient::loadModels(), 20);
+        LearningService learning(db, [&gemini](const std::string& prompt) { return gemini.generateJson(prompt); },
+                                 gemini.configured());
+        std::cout << "Gemini: " << (gemini.configured() ? "on" : GeminiClient::available() ? "off (no API key)" : "off (built without libcurl)")
+                  << "\n";
         search.rebuild();
         nav.reload();
 
         RateLimiter authLimiter(20, 15 * 60 * 1000);   // 20 login/sign-up attempts per 15 min per IP
         RateLimiter writeLimiter(30, 10 * 60 * 1000);  // 30 posts/comments per 10 min per IP
+        RateLimiter geminiLimiter(5, 5 * 60 * 1000);   // 5 Gemini runs per 5 min per IP (free-tier quota is small)
 
         auto rateLimit = [](RateLimiter& rl, const httplib::Request& req) {
             // Behind a reverse proxy, remote_addr is the proxy; use X-Forwarded-For there instead.
@@ -189,7 +206,9 @@ int main(int argc, char** argv) {
 
         httplib::Server svr;
         svr.set_payload_max_length(64 * 1024);
-        if (!svr.set_mount_point("/", cfg.publicDir)) {
+        // Frontend/ is split like the repo: HTML pages at /, and Js, CSS, img folders at /js, /css, /img.
+        if (!svr.set_mount_point("/", cfg.publicDir + "/HTML") || !svr.set_mount_point("/js", cfg.publicDir + "/Js") ||
+            !svr.set_mount_point("/css", cfg.publicDir + "/CSS") || !svr.set_mount_point("/img", cfg.publicDir + "/img")) {
             std::cerr << "Frontend folder not found: " << cfg.publicDir
                       << "\nRun from the project root, or pass --public <path>.\n";
             return 1;
@@ -265,6 +284,96 @@ int main(int argc, char** argv) {
             User u = requireUser(req);
             rateLimit(writeLimiter, req);
             sendJson(res, 201, feed.addComment(u, pathId(req), Params(req).get("content")));
+        }));
+
+        /* ---------- Project partner matching (campus members only) ---------- */
+        svr.Get("/api/partners/meta", safe([&](const httplib::Request& req, httplib::Response& res) {
+            requireUser(req);
+            sendJson(res, 200, partners.meta());
+        }));
+        svr.Get("/api/partners/profile", safe([&](const httplib::Request& req, httplib::Response& res) {
+            sendJson(res, 200, partners.myProfile(requireUser(req)));
+        }));
+        svr.Post("/api/partners/profile", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            Params p(req);
+            sendJson(res, 200, partners.saveProfile(u, ProfileInput{p.get("department"), p.get("semester"), p.get("experience"),
+                                                                    p.get("interests"), p.get("availability"), p.get("skills"), p.get("bio")}));
+        }));
+        svr.Delete("/api/partners/profile", safe([&](const httplib::Request& req, httplib::Response& res) {
+            partners.deleteProfile(requireUser(req));
+            sendNoContent(res);
+        }));
+        svr.Get(R"(/api/partners/students/(\d{1,15}))", safe([&](const httplib::Request& req, httplib::Response& res) {
+            requireUser(req);
+            sendJson(res, 200, partners.studentProfile(pathId(req)));
+        }));
+        svr.Get("/api/partners/projects", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, partners.listProjects(u, Params(req).get("scope", "mine")));
+        }));
+        svr.Post("/api/partners/projects", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            rateLimit(writeLimiter, req);
+            Params p(req);
+            sendJson(res, 201, partners.createProject(u, ProjectInput{p.get("title"), p.get("description"), p.get("domain"),
+                                                                      p.get("teamSize"), p.get("durationWeeks"), p.get("experience"),
+                                                                      p.get("availability"), p.get("scheduleRequired"), p.get("skills"),
+                                                                      p.get("extra")}));
+        }));
+        svr.Get(R"(/api/partners/projects/(\d{1,15}))", safe([&](const httplib::Request& req, httplib::Response& res) {
+            sendJson(res, 200, partners.project(requireUser(req), pathId(req)));
+        }));
+        svr.Patch(R"(/api/partners/projects/(\d{1,15})/status)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, partners.setStatus(u, pathId(req), Params(req).get("status")));
+        }));
+        svr.Get(R"(/api/partners/projects/(\d{1,15})/matches)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, partners.matches(u, pathId(req), static_cast<int>(toInt(Params(req).get("limit"), 10))));
+        }));
+        svr.Post(R"(/api/partners/projects/(\d{1,15})/invite)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            rateLimit(writeLimiter, req);
+            Params p(req);
+            long long studentId = toInt(p.get("studentId"), 0);
+            if (studentId <= 0) throw HttpError(400, "studentId is required.");
+            sendJson(res, 201, partners.invite(u, pathId(req), studentId, p.get("message")));
+        }));
+        svr.Post(R"(/api/partners/projects/(\d{1,15})/request)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            rateLimit(writeLimiter, req);
+            sendJson(res, 201, partners.requestToJoin(u, pathId(req), Params(req).get("message")));
+        }));
+        svr.Post(R"(/api/partners/projects/(\d{1,15})/leave)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            partners.leave(requireUser(req), pathId(req));
+            sendNoContent(res);
+        }));
+        svr.Get("/api/partners/invitations", safe([&](const httplib::Request& req, httplib::Response& res) {
+            sendJson(res, 200, partners.invitations(requireUser(req)));
+        }));
+        svr.Post(R"(/api/partners/invitations/(\d{1,15})/respond)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, partners.respond(u, pathId(req), Params(req).get("action")));
+        }));
+
+        /* ---------- Skill gap + learning recommendations (campus members only) ---------- */
+        svr.Get("/api/learning/goals", safe([&](const httplib::Request& req, httplib::Response& res) {
+            requireUser(req);
+            sendJson(res, 200, learning.goalsJson());
+        }));
+        svr.Get("/api/learning/analysis", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, learning.analysis(u, Params(req).get("goal")));
+        }));
+        svr.Post("/api/learning/recommendations", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            rateLimit(geminiLimiter, req);
+            sendJson(res, 200, learning.recommend(u, Params(req).get("goal")));
+        }));
+        svr.Post(R"(/api/learning/recommendations/(\d{1,15})/status)", safe([&](const httplib::Request& req, httplib::Response& res) {
+            User u = requireUser(req);
+            sendJson(res, 200, learning.setStatus(u, pathId(req), Params(req).get("status")));
         }));
 
         /* ---------- Emergency (reads are public: no login wall in an emergency) ---------- */
