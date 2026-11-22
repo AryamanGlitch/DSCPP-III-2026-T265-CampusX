@@ -1,0 +1,8 @@
+build/
+*.db
+*.db-wal
+*.db-shm
+third_party/httplib.h
+third_party/sqlite/
+gemini.key
+build-mac/
