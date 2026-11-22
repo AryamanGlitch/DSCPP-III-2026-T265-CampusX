@@ -2,14 +2,15 @@
 // Coordinates, rooms, people and two phone numbers are placeholders. Replace
 // them with surveyed data (estate office floor plans + GPS points walked on
 // site + real security numbers) before any demo that claims to be real.
-#include "seed/Seed.h"
+#include "Seed.h"
 
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 
-#include "util/Text.h"
+#include "../services.ved/PartnerService.h"
+#include "../util/Text.h"
 
 namespace cx {
 
@@ -121,13 +122,15 @@ void seedDatabase(Database& db, AuthService& auth, const std::string& demoPasswo
     // Users first: password hashing is slow and takes its own lock.
     {
         auto lock = db.lock();
-        db.exec("DELETE FROM comments; DELETE FROM likes; DELETE FROM posts; DELETE FROM sessions; DELETE FROM hazards;"
+        db.exec("DELETE FROM learning_recommendations; DELETE FROM invitations; DELETE FROM project_members; DELETE FROM project_skills; DELETE FROM projects;"
+                "DELETE FROM student_skills; DELETE FROM partner_profiles; DELETE FROM skills;"
+                "DELETE FROM comments; DELETE FROM likes; DELETE FROM posts; DELETE FROM sessions; DELETE FROM hazards;"
                 "DELETE FROM users; DELETE FROM nav_edges; DELETE FROM nav_nodes; DELETE FROM places;"
                 "DELETE FROM building_floors; DELETE FROM faculty; DELETE FROM events; DELETE FROM contacts;");
     }
     long long admin = auth.createUser("Campus Admin", "admin@campusx.local", demoPassword, "admin");
     long long prof = auth.createUser("Dr. Ananya Rao", "faculty@campusx.local", demoPassword, "faculty");
-    long long student = auth.createUser("Riya Student", "student@campusx.local", demoPassword, "student");
+    long long student = auth.createUser(DEMO_STUDENT_NAME, DEMO_STUDENT_EMAIL, DEMO_STUDENT_PASSWORD, "student");
 
     auto lock = db.lock();
     Transaction tx(db);
@@ -240,6 +243,104 @@ void seedDatabase(Database& db, AuthService& auth, const std::string& demoPasswo
             .bind(3, "general").bind(4, 0).bind(5, now - 10 * 60000).run();
     }
     tx.commit();
+    seedPartnerSample(db, auth, demoPassword);
+}
+
+bool upgradeLegacyDemoStudent(Database& db, AuthService& auth) {
+    long long id = 0;
+    {
+        auto lock = db.lock();
+        auto st = db.prepare("SELECT (SELECT id FROM users WHERE email = 'student@campusx.local' AND role = 'student'), "
+                             "EXISTS (SELECT 1 FROM users WHERE email = ?)");
+        st.bind(1, DEMO_STUDENT_EMAIL);
+        st.step();
+        if (st.isNull(0) || st.getInt(1) != 0) return false;  // nothing to move, or the new login is taken
+        id = st.getInt(0);
+    }
+    auth.resetCredentials(id, DEMO_STUDENT_NAME, DEMO_STUDENT_EMAIL, DEMO_STUDENT_PASSWORD);
+    return true;
+}
+
+bool partnerSampleMissing(Database& db) {
+    auto lock = db.lock();
+    auto st = db.prepare(
+        "SELECT EXISTS (SELECT 1 FROM users WHERE email = ?) "
+        "AND NOT EXISTS (SELECT 1 FROM partner_profiles) AND NOT EXISTS (SELECT 1 FROM users WHERE email LIKE '%.sample@campusx.local')");
+    st.bind(1, DEMO_STUDENT_EMAIL);
+    st.step();
+    return st.getInt(0) != 0;
+}
+
+void seedPartnerSample(Database& db, AuthService& auth, const std::string& demoPassword) {
+    // Time slots are day * 3 + period (Mon = 0, morning = 0). Wed evening = 8, Sat = 15..17, Sun = 18..20.
+    struct S { const char *name, *email, *dept, *sem, *exp, *interests, *slots, *skills, *bio; };
+    const S students[] = {
+        {"Aarav Sharma", "aarav.sample@campusx.local", "CSE", "5", "2", "ai_ml,data_science", "8,15,16",
+         "Python:3,Machine Learning:3,NumPy:2,Pandas:2", "Kaggle regular. Built a plant disease classifier."},
+        {"Ishita Verma", "ishita.sample@campusx.local", "CSE", "6", "2", "ai_ml", "15,16,19",
+         "Python:2,Machine Learning:2,Deep Learning:2", "Interested in computer vision."},
+        {"Kabir Mehta", "kabir.sample@campusx.local", "CSE (AI)", "5", "2", "ai_ml,data_science", "8,19",
+         "Python:2,Machine Learning:2,Data Analysis:2", ""},
+        {"Neha Joshi", "neha.sample@campusx.local", "IT", "5", "2", "web,cloud", "15,16,18,19",
+         "SQL:3,Database Management:3,C++:2", "Backend and databases."},
+        {"Rohan Das", "rohan.sample@campusx.local", "CSE", "4", "2", "web,design", "8,16",
+         "Frontend Development:3,JavaScript:3,React:2", "I make things look good and load fast."},
+        {"Sneha Rawat", "sneha.sample@campusx.local", "BCA", "4", "1", "data_science", "2,5,8,11",
+         "Data Analysis:2,Python:1,Data Visualization:2", ""},
+        {"Arjun Negi", "arjun.sample@campusx.local", "CSE", "7", "3", "cybersecurity", "15,16,18,19",
+         "Network Security:3,Linux:2,Python:1", "CTF player."},
+        {"Meera Iyer", "meera.sample@campusx.local", "B.Des", "3", "1", "design", "0,3",
+         "UI/UX Design:3,Figma:3,Frontend Development:1", ""},
+        {"Tanvi Bisht", "tanvi.sample@campusx.local", "IT", "6", "2", "mobile", "15",
+         "Java:2,Android:2,SQL:1", ""},
+    };
+    PartnerService partners(db);
+    std::unordered_map<std::string, User> byEmail;
+    for (const S& s : students) {
+        long long id = auth.createUser(s.name, s.email, demoPassword, "student");
+        User u{id, s.name, s.email, "student"};
+        partners.saveProfile(u, ProfileInput{s.dept, s.sem, s.exp, s.interests, s.slots, s.skills, s.bio});
+        byEmail[s.email] = u;
+    }
+
+    long long aryamanId = 0;
+    std::string aryamanName = "Aryaman";
+    {
+        auto lock = db.lock();
+        auto st = db.prepare("SELECT id, name FROM users WHERE email = ?");
+        st.bind(1, DEMO_STUDENT_EMAIL);
+        if (!st.step()) return;
+        aryamanId = st.getInt(0);
+        aryamanName = st.getText(1);
+    }
+    User aryaman{aryamanId, aryamanName, DEMO_STUDENT_EMAIL, "student"};
+    partners.saveProfile(aryaman, ProfileInput{"CSE", "5", "2", "ai_ml", "8,15,16,19", "Machine Learning:2,Python:1",
+                                            "Looking for a team for the crop recommendation idea."});
+
+    // Same example as the feature spec: creator knows ML, so the balanced team should add SQL, frontend and data analysis.
+    partners.createProject(aryaman, ProjectInput{
+        "AI-Based Crop Recommendation System",
+        "A machine learning project that predicts suitable crops from soil properties and weather conditions.",
+        "ai_ml", "4", "8", "2", "8,15,16,19", "0",
+        "Machine Learning:2:5:0,Python:2:4:0,SQL:2:3:0,Frontend Development:1:3:0,Data Analysis:1:2:0",
+        "Weekly sync on Saturday afternoon."});
+    partners.createProject(byEmail["rohan.sample@campusx.local"], ProjectInput{
+        "Campus Events Website", "One place to list club events with RSVPs and reminders.",
+        "web", "3", "6", "1", "8,16", "0", "Frontend Development:2:5:1,JavaScript:2:4:0,SQL:1:3:0,UI/UX Design:1:2:0", ""});
+    partners.createProject(byEmail["arjun.sample@campusx.local"], ProjectInput{
+        "Phishing Email Detector", "Classify suspicious emails using header analysis and a small ML model.",
+        "cybersecurity", "3", "5", "2", "15,16,18,19", "0", "Network Security:2:5:0,Python:2:4:0,Machine Learning:2:4:0", ""});
+    // An invitation already waiting for the demo student.
+    long long phishingId = 0;
+    {
+        auto lock = db.lock();
+        auto st = db.prepare("SELECT id FROM projects WHERE title = 'Phishing Email Detector'");
+        if (st.step()) phishingId = st.getInt(0);
+    }
+    if (phishingId) {
+        partners.invite(byEmail["arjun.sample@campusx.local"], phishingId, aryamanId,
+                        "We need someone with ML for the classifier. Interested?");
+    }
 }
 
 }  // namespace cx
